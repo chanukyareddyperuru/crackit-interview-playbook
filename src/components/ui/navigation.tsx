@@ -1,0 +1,64 @@
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Code, Target, FileText, Trophy, User } from "lucide-react";
+
+const Navigation = () => {
+  const location = useLocation();
+  
+  const navItems = [
+    { name: "Practice", path: "/practice", icon: Code },
+    { name: "Interview", path: "/interview", icon: Target },
+    { name: "Resume", path: "/resume", icon: FileText },
+    { name: "Leaderboard", path: "/leaderboard", icon: Trophy },
+  ];
+
+  return (
+    <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">CrackIt</span>
+          </Link>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* User Actions */}
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm">
+              <User className="w-4 h-4 mr-2" />
+              Sign In
+            </Button>
+            <Button size="sm" className="btn-gradient">
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navigation;
