@@ -45,16 +45,6 @@ const Navigation = () => {
             })}
           </div>
 
-          {/* User Actions */}
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm">
-              <User className="w-4 h-4 mr-2" />
-              Sign In
-            </Button>
-            <Button size="sm" className="btn-gradient">
-              Get Started
-            </Button>
-          </div>
         </div>
       </div>
     </nav>
