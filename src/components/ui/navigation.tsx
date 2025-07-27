@@ -6,7 +6,7 @@ const Navigation = () => {
   const location = useLocation();
   
   const navItems = [
-    { name: "Practice", path: "/practice", icon: Code },
+    { name: "Practice", path: "https://lovable.dev/projects/06595499-5cc2-4bff-b662-93b15db64ed0", icon: Code, external: true },
     { name: "Interview", path: "/interview", icon: Target },
     { name: "Resume", path: "/resume", icon: FileText },
     { name: "Leaderboard", path: "/leaderboard", icon: Trophy },
@@ -27,7 +27,23 @@ const Navigation = () => {
           {/* Navigation Links */}
           <div className="flex items-center space-x-1">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive = !item.external && location.pathname === item.path;
+              
+              if (item.external) {
+                return (
+                  <a
+                    key={item.name}
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.name}</span>
+                  </a>
+                );
+              }
+              
               return (
                 <Link
                   key={item.name}
