@@ -259,6 +259,28 @@ const Interview = () => {
             </Card>
           </div>
         </div>
+
+        {/* Practice Interviews Section */}
+        <div className="max-w-4xl mx-auto mt-16 text-center">
+          <Card className="shadow-lg border-0 rounded-2xl bg-gradient-to-br from-background to-muted/20">
+            <CardContent className="p-12">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
+                Practice Interviews
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+                Simulate real HR, Technical, or System Design interviews with live feedback.
+              </p>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-xl px-8 py-6 text-lg rounded-xl"
+                onClick={() => window.location.href = '/interview-room'}
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Start Interview
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
