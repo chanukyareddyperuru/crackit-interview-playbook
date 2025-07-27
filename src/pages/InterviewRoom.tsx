@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, Mic, Phone, Settings } from "lucide-react";
+import { Video, Phone, Settings } from "lucide-react";
+import VoiceInterface from "@/components/VoiceInterface";
 
 const InterviewRoom = () => {
   return (
@@ -18,8 +19,8 @@ const InterviewRoom = () => {
 
           <div className="grid lg:grid-cols-4 gap-6">
             {/* Video Area */}
-            <div className="lg:col-span-3">
-              <Card className="h-96 lg:h-[500px]">
+            <div className="lg:col-span-3 space-y-6">
+              <Card className="h-80 lg:h-96">
                 <CardContent className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
                   <div className="text-center space-y-4">
                     <Video className="w-16 h-16 text-muted-foreground mx-auto" />
@@ -28,11 +29,11 @@ const InterviewRoom = () => {
                 </CardContent>
               </Card>
               
+              {/* Voice Interface */}
+              <VoiceInterface />
+              
               {/* Controls */}
-              <div className="flex items-center justify-center space-x-4 mt-6">
-                <Button variant="outline" size="lg" className="rounded-full w-14 h-14">
-                  <Mic className="w-6 h-6" />
-                </Button>
+              <div className="flex items-center justify-center space-x-4">
                 <Button variant="outline" size="lg" className="rounded-full w-14 h-14">
                   <Video className="w-6 h-6" />
                 </Button>
