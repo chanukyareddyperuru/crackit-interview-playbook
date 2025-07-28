@@ -6,7 +6,7 @@ const Navigation = () => {
   const location = useLocation();
   
   const navItems = [
-    { name: "Practice", path: "https://lovable.dev/projects/06595499-5cc2-4bff-b662-93b15db64ed0", icon: Code, external: true },
+    { name: "Practice", path: "https://lovable.dev/projects/0702e0f9-431e-40e2-a989-062c4bc79418", icon: Code, external: true },
     { name: "Interview", path: "/interview", icon: Target },
     { name: "Resume", path: "/resume", icon: FileText },
     { name: "Leaderboard", path: "/leaderboard", icon: Trophy },
