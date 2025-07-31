@@ -9,7 +9,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Download, Eye } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Trash2, Download, Eye, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 const resumeSchema = z.object({
@@ -17,6 +19,7 @@ const resumeSchema = z.object({
     fullName: z.string().min(1, "Full name is required"),
     email: z.string().email("Invalid email address"),
     phone: z.string().min(1, "Phone number is required"),
+    countryCode: z.string().default("+1"),
     location: z.string().min(1, "Location is required"),
     summary: z.string().min(50, "Summary should be at least 50 characters"),
   }),
@@ -45,6 +48,91 @@ const resumeSchema = z.object({
 
 type ResumeData = z.infer<typeof resumeSchema>;
 
+// Suggestions data
+const suggestionsByField = {
+  summary: [
+    "Experienced software developer with 5+ years in building scalable web applications",
+    "Results-driven marketing professional with expertise in digital campaigns and analytics",
+    "Dedicated customer service representative with strong communication and problem-solving skills",
+    "Creative graphic designer specializing in brand identity and user experience design",
+    "Detail-oriented project manager with proven track record of delivering projects on time"
+  ],
+  position: [
+    "Software Engineer", "Full Stack Developer", "Frontend Developer", "Backend Developer",
+    "Product Manager", "UX/UI Designer", "Data Analyst", "Marketing Manager",
+    "Sales Representative", "Customer Success Manager", "Project Manager", "DevOps Engineer"
+  ],
+  company: [
+    "Google", "Microsoft", "Amazon", "Apple", "Meta", "Netflix", "Adobe", "Salesforce",
+    "Tesla", "Uber", "Airbnb", "Spotify", "Twitter", "LinkedIn", "GitHub", "Slack"
+  ],
+  skills: [
+    "JavaScript", "Python", "React", "Node.js", "TypeScript", "AWS", "Docker", "MongoDB",
+    "PostgreSQL", "Git", "HTML/CSS", "Java", "C++", "Machine Learning", "Data Analysis",
+    "Project Management", "Agile", "Scrum", "Communication", "Leadership"
+  ],
+  degree: [
+    "Bachelor's", "Master's", "PhD", "Associate", "Certificate", "Diploma"
+  ],
+  field: [
+    "Computer Science", "Software Engineering", "Information Technology", "Business Administration",
+    "Marketing", "Graphic Design", "Psychology", "Engineering", "Mathematics", "Data Science"
+  ],
+  technologies: [
+    "React, Node.js, MongoDB", "Python, Django, PostgreSQL", "JavaScript, Express, MySQL",
+    "Vue.js, PHP, Laravel", "Angular, .NET, SQL Server", "Flutter, Dart, Firebase"
+  ]
+};
+
+const countryCodes = [
+  { code: "+1", country: "US/CA", flag: "🇺🇸" },
+  { code: "+44", country: "UK", flag: "🇬🇧" },
+  { code: "+91", country: "India", flag: "🇮🇳" },
+  { code: "+86", country: "China", flag: "🇨🇳" },
+  { code: "+81", country: "Japan", flag: "🇯🇵" },
+  { code: "+49", country: "Germany", flag: "🇩🇪" },
+  { code: "+33", country: "France", flag: "🇫🇷" },
+  { code: "+61", country: "Australia", flag: "🇦🇺" },
+  { code: "+55", country: "Brazil", flag: "🇧🇷" },
+  { code: "+7", country: "Russia", flag: "🇷🇺" }
+];
+
+// Suggestion component
+const SuggestionPopup = ({ suggestions, onSelect, children }: { 
+  suggestions: string[], 
+  onSelect: (suggestion: string) => void,
+  children: React.ReactNode 
+}) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div onClick={() => setOpen(true)}>
+          {children}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-2 bg-background border shadow-md z-50">
+        <div className="text-sm font-medium mb-2">Suggestions:</div>
+        <div className="max-h-32 overflow-y-auto space-y-1">
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="p-2 text-sm cursor-pointer hover:bg-muted rounded transition-colors"
+              onClick={() => {
+                onSelect(suggestion);
+                setOpen(false);
+              }}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 export const ResumeBuilder = () => {
   const [previewMode, setPreviewMode] = useState(false);
   
@@ -55,6 +143,7 @@ export const ResumeBuilder = () => {
         fullName: "",
         email: "",
         phone: "",
+        countryCode: "+1",
         location: "",
         summary: "",
       },
@@ -142,7 +231,7 @@ export const ResumeBuilder = () => {
               <h1 className="text-3xl font-bold">{watchedValues.personalInfo.fullName || "Your Name"}</h1>
               <div className="flex justify-center gap-4 mt-2 text-sm text-gray-600">
                 <span>{watchedValues.personalInfo.email}</span>
-                <span>{watchedValues.personalInfo.phone}</span>
+                <span>{watchedValues.personalInfo.countryCode} {watchedValues.personalInfo.phone}</span>
                 <span>{watchedValues.personalInfo.location}</span>
               </div>
             </div>
@@ -288,7 +377,31 @@ export const ResumeBuilder = () => {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="+1 (555) 123-4567" {...field} />
+                        <div className="flex gap-2">
+                          <FormField
+                            control={form.control}
+                            name="personalInfo.countryCode"
+                            render={({ field: countryField }) => (
+                              <Select onValueChange={countryField.onChange} value={countryField.value}>
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background border shadow-md z-50">
+                                  {countryCodes.map((country) => (
+                                    <SelectItem key={country.code} value={country.code}>
+                                      {country.flag} {country.code}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                          <Input 
+                            placeholder="(555) 123-4567" 
+                            className="flex-1"
+                            {...field} 
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -315,14 +428,19 @@ export const ResumeBuilder = () => {
                   <FormItem>
                     <FormLabel>Professional Summary</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Write a brief summary about yourself, your experience, and career goals..."
-                        className="min-h-[100px]"
-                        {...field} 
-                      />
+                      <SuggestionPopup
+                        suggestions={suggestionsByField.summary}
+                        onSelect={(suggestion) => field.onChange(suggestion)}
+                      >
+                        <Textarea 
+                          placeholder="Write a brief summary about yourself, your experience, and career goals..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </SuggestionPopup>
                     </FormControl>
                     <FormDescription>
-                      A compelling summary that highlights your key skills and experience
+                      A compelling summary that highlights your key skills and experience. Click to see suggestions!
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -364,7 +482,12 @@ export const ResumeBuilder = () => {
                         <FormItem>
                           <FormLabel>Company</FormLabel>
                           <FormControl>
-                            <Input placeholder="Company Name" {...field} />
+                            <SuggestionPopup
+                              suggestions={suggestionsByField.company}
+                              onSelect={(suggestion) => field.onChange(suggestion)}
+                            >
+                              <Input placeholder="Company Name" {...field} />
+                            </SuggestionPopup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -377,7 +500,12 @@ export const ResumeBuilder = () => {
                         <FormItem>
                           <FormLabel>Position</FormLabel>
                           <FormControl>
-                            <Input placeholder="Job Title" {...field} />
+                            <SuggestionPopup
+                              suggestions={suggestionsByField.position}
+                              onSelect={(suggestion) => field.onChange(suggestion)}
+                            >
+                              <Input placeholder="Job Title" {...field} />
+                            </SuggestionPopup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -477,7 +605,12 @@ export const ResumeBuilder = () => {
                         <FormItem>
                           <FormLabel>Degree</FormLabel>
                           <FormControl>
-                            <Input placeholder="Bachelor's, Master's, etc." {...field} />
+                            <SuggestionPopup
+                              suggestions={suggestionsByField.degree}
+                              onSelect={(suggestion) => field.onChange(suggestion)}
+                            >
+                              <Input placeholder="Bachelor's, Master's, etc." {...field} />
+                            </SuggestionPopup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -490,7 +623,12 @@ export const ResumeBuilder = () => {
                         <FormItem>
                           <FormLabel>Field of Study</FormLabel>
                           <FormControl>
-                            <Input placeholder="Computer Science, Engineering, etc." {...field} />
+                            <SuggestionPopup
+                              suggestions={suggestionsByField.field}
+                              onSelect={(suggestion) => field.onChange(suggestion)}
+                            >
+                              <Input placeholder="Computer Science, Engineering, etc." {...field} />
+                            </SuggestionPopup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -536,7 +674,12 @@ export const ResumeBuilder = () => {
                       render={({ field }) => (
                         <FormItem className="flex-1">
                           <FormControl>
-                            <Input placeholder="e.g., JavaScript, React, Python" {...field} />
+                            <SuggestionPopup
+                              suggestions={suggestionsByField.skills}
+                              onSelect={(suggestion) => field.onChange(suggestion)}
+                            >
+                              <Input placeholder="e.g., JavaScript, React, Python" {...field} />
+                            </SuggestionPopup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -634,7 +777,12 @@ export const ResumeBuilder = () => {
                       <FormItem>
                         <FormLabel>Technologies Used</FormLabel>
                         <FormControl>
-                          <Input placeholder="React, Node.js, MongoDB, etc." {...field} />
+                          <SuggestionPopup
+                            suggestions={suggestionsByField.technologies}
+                            onSelect={(suggestion) => field.onChange(suggestion)}
+                          >
+                            <Input placeholder="React, Node.js, MongoDB, etc." {...field} />
+                          </SuggestionPopup>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
