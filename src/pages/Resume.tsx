@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { FileText, Globe, Download, Eye } from "lucide-react";
 import { ResumeBuilder } from "@/components/ResumeBuilder";
 import { PortfolioConverter } from "@/components/PortfolioConverter";
+import { ResumeChat } from "@/components/ResumeChat";
 import { toast } from "sonner";
 
 const Resume = () => {
   const [activeTab, setActiveTab] = useState("builder");
+  const [resumeData, setResumeData] = useState(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
@@ -50,7 +52,7 @@ const Resume = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResumeBuilder />
+                <ResumeBuilder onDataChange={setResumeData} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -112,6 +114,9 @@ const Resume = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Resume Chat Assistant */}
+        <ResumeChat resumeData={resumeData} />
       </div>
     </div>
   );

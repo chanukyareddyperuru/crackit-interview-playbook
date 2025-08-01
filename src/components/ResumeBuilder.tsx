@@ -182,7 +182,11 @@ const resumeTemplates = [
   }
 ];
 
-export const ResumeBuilder = () => {
+interface ResumeBuilderProps {
+  onDataChange?: (data: any) => void;
+}
+
+export const ResumeBuilder = ({ onDataChange }: ResumeBuilderProps) => {
   const [previewMode, setPreviewMode] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("modern");
   const [showTemplates, setShowTemplates] = useState(false);
