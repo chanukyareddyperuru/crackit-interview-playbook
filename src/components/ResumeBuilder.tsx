@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -11,8 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Trash2, Download, Eye, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Download, Eye, ChevronDown, Upload, FileText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 const resumeSchema = z.object({
   personalInfo: z.object({
@@ -185,6 +186,8 @@ export const ResumeBuilder = () => {
   const [previewMode, setPreviewMode] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("modern");
   const [showTemplates, setShowTemplates] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const { analyzeResume, isAnalyzing } = useFileUpload();
   
   const form = useForm<ResumeData>({
     resolver: zodResolver(resumeSchema),
@@ -250,6 +253,74 @@ export const ResumeBuilder = () => {
   const handleDownload = () => {
     toast.success("Resume downloaded successfully!");
   };
+
+  const handleFileUpload = useCallback(async (file: File) => {
+    try {
+      const analyzedData = await analyzeResume(file);
+      
+      // Update form with analyzed data
+      if (analyzedData.personalInfo) {
+        Object.keys(analyzedData.personalInfo).forEach((key) => {
+          if (analyzedData.personalInfo[key]) {
+            setValue(`personalInfo.${key}` as any, analyzedData.personalInfo[key]);
+          }
+        });
+      }
+      
+      if (analyzedData.experience?.length) {
+        setValue("experience", analyzedData.experience);
+      }
+      
+      if (analyzedData.education?.length) {
+        setValue("education", analyzedData.education);
+      }
+      
+      if (analyzedData.skills?.length) {
+        setValue("skills", analyzedData.skills);
+      }
+      
+      if (analyzedData.projects?.length) {
+        setValue("projects", analyzedData.projects);
+      }
+      
+      if (analyzedData.suggestions) {
+        toast.success("Resume analyzed! Check the suggestions for improvements.", {
+          description: analyzedData.suggestions.slice(0, 100) + "..."
+        });
+      }
+    } catch (error) {
+      console.error("Error handling file upload:", error);
+    }
+  }, [analyzeResume, setValue]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const resumeFile = files.find(file => 
+      file.type === 'application/pdf' || 
+      file.type === 'text/plain' ||
+      file.name.toLowerCase().includes('.pdf') ||
+      file.name.toLowerCase().includes('.txt')
+    );
+    
+    if (resumeFile) {
+      handleFileUpload(resumeFile);
+    } else {
+      toast.error("Please upload a PDF or TXT file");
+    }
+  }, [handleFileUpload]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
 
   const onSubmit = (data: ResumeData) => {
     console.log("Resume data:", data);
@@ -452,6 +523,65 @@ export const ResumeBuilder = () => {
           </Button>
         </div>
       </div>
+
+      {/* File Upload Area */}
+      <Card 
+        className={`border-2 border-dashed transition-all duration-200 ${
+          isDragOver 
+            ? 'border-primary bg-primary/5 scale-[1.02]' 
+            : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+        }`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+      >
+        <CardContent className="p-8">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              {isAnalyzing ? (
+                <Sparkles className="w-12 h-12 text-primary animate-pulse" />
+              ) : (
+                <Upload className="w-12 h-12 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">
+                {isAnalyzing ? "Analyzing Your Resume..." : "Upload Your Existing Resume"}
+              </h3>
+              <p className="text-muted-foreground">
+                {isAnalyzing 
+                  ? "Our AI is extracting information from your resume. This may take a moment."
+                  : "Drop your resume here or click to browse. We'll analyze it with AI and auto-fill the form!"
+                }
+              </p>
+            </div>
+            {!isAnalyzing && (
+              <div className="flex justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.pdf,.txt';
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) handleFileUpload(file);
+                    };
+                    input.click();
+                  }}
+                  className="gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Choose File
+                </Button>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Supported formats: PDF, TXT
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
