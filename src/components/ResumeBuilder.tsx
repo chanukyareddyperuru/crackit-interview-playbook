@@ -133,8 +133,58 @@ const SuggestionPopup = ({ suggestions, onSelect, children }: {
   );
 };
 
+// Resume Templates
+const resumeTemplates = [
+  {
+    id: "modern",
+    name: "Modern",
+    description: "Clean, contemporary design with subtle colors",
+    preview: "Modern template with clean lines and professional layout",
+    colors: {
+      primary: "hsl(var(--primary))",
+      secondary: "hsl(var(--secondary))",
+      accent: "hsl(var(--accent))"
+    }
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description: "Traditional format preferred by most employers",
+    preview: "Traditional black and white professional template",
+    colors: {
+      primary: "#000000",
+      secondary: "#333333",
+      accent: "#666666"
+    }
+  },
+  {
+    id: "creative",
+    name: "Creative",
+    description: "Colorful design for creative professionals",
+    preview: "Vibrant template with creative flair and modern typography",
+    colors: {
+      primary: "#3B82F6",
+      secondary: "#8B5CF6",
+      accent: "#F59E0B"
+    }
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    description: "Simple, clean design with lots of white space",
+    preview: "Minimalist template focusing on content over design",
+    colors: {
+      primary: "#1F2937",
+      secondary: "#6B7280",
+      accent: "#9CA3AF"
+    }
+  }
+];
+
 export const ResumeBuilder = () => {
   const [previewMode, setPreviewMode] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [showTemplates, setShowTemplates] = useState(false);
   
   const form = useForm<ResumeData>({
     resolver: zodResolver(resumeSchema),
@@ -325,14 +375,82 @@ export const ResumeBuilder = () => {
     );
   }
 
+  if (showTemplates) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Choose a Template</h2>
+          <Button variant="outline" onClick={() => setShowTemplates(false)}>
+            Back to Builder
+          </Button>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {resumeTemplates.map((template) => (
+            <Card 
+              key={template.id} 
+              className={`cursor-pointer transition-all hover:shadow-lg ${
+                selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => {
+                setSelectedTemplate(template.id);
+                setShowTemplates(false);
+                toast.success(`${template.name} template selected!`);
+              }}
+            >
+              <CardHeader>
+                <CardTitle className="text-lg">{template.name}</CardTitle>
+                <p className="text-sm text-muted-foreground">{template.description}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="h-32 bg-muted rounded border-2 border-dashed border-muted-foreground/20 flex items-center justify-center mb-4">
+                  <div className="text-center p-4">
+                    <div className="w-full h-2 rounded mb-2" style={{ backgroundColor: template.colors.primary }}></div>
+                    <div className="w-3/4 h-1 rounded mb-1" style={{ backgroundColor: template.colors.secondary }}></div>
+                    <div className="w-1/2 h-1 rounded" style={{ backgroundColor: template.colors.accent }}></div>
+                  </div>
+                </div>
+                <Badge 
+                  variant={selectedTemplate === template.id ? "default" : "secondary"}
+                  className="w-full justify-center"
+                >
+                  {selectedTemplate === template.id ? "Selected" : "Select Template"}
+                </Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Template: {resumeTemplates.find(t => t.id === selectedTemplate)?.name}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              {resumeTemplates.find(t => t.id === selectedTemplate)?.preview}
+            </p>
+            <Button onClick={() => setShowTemplates(false)}>
+              Continue with {resumeTemplates.find(t => t.id === selectedTemplate)?.name} Template
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Build Your Resume</h2>
-        <Button variant="outline" onClick={() => setPreviewMode(true)}>
-          <Eye className="w-4 h-4 mr-2" />
-          Preview
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowTemplates(true)}>
+            Templates
+          </Button>
+          <Button variant="outline" onClick={() => setPreviewMode(true)}>
+            <Eye className="w-4 h-4 mr-2" />
+            Preview
+          </Button>
+        </div>
       </div>
 
       <Form {...form}>
